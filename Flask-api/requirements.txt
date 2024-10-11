@@ -1,0 +1,5 @@
+Flask==2.3.2
+google-cloud-bigquery==3.26.0
+setuptools>=70.0.0  # Se actualiza para evitar la vulnerabilidad de ReDoS.
+pip>=23.3
+python-dotenv>=0.21.0
