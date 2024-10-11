@@ -84,7 +84,7 @@ jobs:
           CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
         run: |
           for i in {1..5}; do
-            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$CLOUD_RUN_URL/data")
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$CLOUD_RUN_URL/data" || echo "Error")
             if [ "$RESPONSE" -eq 200 ]; then
               echo "Prueba de integración pasada: La API devolvió HTTP 200"
               exit 0
