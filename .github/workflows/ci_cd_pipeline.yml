@@ -154,7 +154,7 @@ jobs:
           python Flask-api/app.py &
           APP_PID=$!
           sleep 5
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/data || echo "000")
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://127.0.0.1:8080/data || echo "000")
           if [ "$RESPONSE" -ne 200 ]; then
             echo "Error: El servidor Flask no está respondiendo correctamente"
             kill $APP_PID
