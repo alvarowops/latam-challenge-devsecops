@@ -67,6 +67,10 @@ jobs:
             --allow-unauthenticated \
             --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
           CLOUD_RUN_URL=$(gcloud run services describe data-api --region us-east4 --format 'value(status.url)')
+          if [ -z "$CLOUD_RUN_URL" ]; then
+            echo "Error: No se pudo obtener la URL del servicio de Cloud Run"
+            exit 1
+          fi
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
 
   test:
@@ -130,13 +134,19 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: Establecer variable de entorno para PROJECT_ID
+        run: |
+          echo "PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" >> $GITHUB_ENV
+
       - name: Instalar dependencias
         run: |
           pip install -r Flask-api/requirements.txt
 
       - name: Ejecutar prueba unitaria simple
+        env:
+          PROJECT_ID: ${{ env.PROJECT_ID }}
         run: |
           python Flask-api/app.py &
           sleep 5
-          curl -f http://127.0.0.1:5000 || exit 1
+          curl -f http://127.0.0.1:8080 || exit 1
           echo "Prueba unitaria pasada: El servidor Flask está respondiendo correctamente"
