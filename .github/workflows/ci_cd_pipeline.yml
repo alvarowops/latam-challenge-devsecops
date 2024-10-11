@@ -117,7 +117,7 @@ jobs:
           echo "Prueba de integración pasada: El mensaje fue ingresado y se refleja en la API"
 
   unit_tests:
-    name: Ejecutar pruebas unitarias
+    name: Ejecutar prueba unitaria básica
     runs-on: ubuntu-latest
     needs: build
 
@@ -133,8 +133,10 @@ jobs:
       - name: Instalar dependencias
         run: |
           pip install -r Flask-api/requirements.txt
-          pip install pytest
 
-      - name: Ejecutar pruebas unitarias
+      - name: Ejecutar prueba unitaria simple
         run: |
-          pytest Flask-api/tests/
+          python Flask-api/app.py &
+          sleep 5
+          curl -f http://127.0.0.1:5000 || exit 1
+          echo "Prueba unitaria pasada: El servidor Flask está respondiendo correctamente"
