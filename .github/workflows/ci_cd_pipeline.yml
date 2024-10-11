@@ -100,7 +100,7 @@ jobs:
           CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
         run: |
           RESPONSE=$(curl -s "$CLOUD_RUN_URL/data")
-          if [[ "$RESPONSE" != *"id":123* ]]; then
+          if [[ "$RESPONSE" != *"id\":123"* ]]; then
             echo "Prueba funcional fallida: Los datos esperados no se encontraron en la respuesta"
             exit 1
           fi
@@ -134,9 +134,10 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Establecer variable de entorno para PROJECT_ID
+      - name: Establecer variable de entorno para PROJECT_ID y credenciales
         run: |
           echo "PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" >> $GITHUB_ENV
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GCP_SA_KEY }}" >> $GITHUB_ENV
 
       - name: Instalar dependencias
         run: |
@@ -145,8 +146,17 @@ jobs:
       - name: Ejecutar prueba unitaria simple
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
         run: |
           python Flask-api/app.py &
+          APP_PID=$!
           sleep 5
-          curl -f http://127.0.0.1:8080 || exit 1
-          echo "Prueba unitaria pasada: El servidor Flask está respondiendo correctamente"
+          RESPONSE=$(curl -f http://127.0.0.1:8080/data || echo "Error")
+          if [[ "$RESPONSE" == "Error" ]]; then
+            echo "Error: El servidor Flask no está respondiendo"
+            kill $APP_PID
+            exit 1
+          else
+            echo "Prueba unitaria pasada: El servidor Flask está respondiendo correctamente"
+            kill $APP_PID
+          fi
