@@ -52,13 +52,18 @@ jobs:
         run: |
           gcloud auth configure-docker us-east4-docker.pkg.dev
 
+      - name: Verify Active Account
+        run: |
+          gcloud auth list
+          gcloud config set account $(gcloud auth list --filter=status:ACTIVE --format="value(account)")
+
       - name: Deploy to Cloud Run
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           gcloud run deploy data-api \
             --image us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG \
-            --region us-central1 \
+            --region us-east4 \
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
