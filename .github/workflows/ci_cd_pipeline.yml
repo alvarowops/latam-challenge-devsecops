@@ -34,7 +34,7 @@ jobs:
           docker buildx build --platform linux/amd64 -t us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG -f Flask-api/Dockerfile --push Flask-api
 
   deploy:
-    name: Deploy to Cloud Run
+    name: Deploy to Cloud Run and Cloud Function
     runs-on: ubuntu-latest
     needs: build
 
@@ -66,3 +66,34 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          CLOUD_RUN_URL=$(gcloud run services describe data-api --region us-east4 --format 'value(status.url)')
+          echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
+
+      - name: Deploy Pub/Sub to BigQuery Cloud Function
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          gcloud functions deploy pubsub-to-bigquery \
+            --runtime python39 \
+            --trigger-topic data-ingest-topic \
+            --entry-point ingest_data \
+            --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},DATASET=analytics_dataset,TABLE_NAME=example_table \
+            --memory 256MB
+
+      - name: Run Integration Test
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$CLOUD_RUN_URL/data")
+          if [ "$RESPONSE" -ne 200 ]; then
+            echo "Integration test failed: API did not return HTTP 200"
+            exit 1
+          fi
+          echo "Integration test passed: API returned HTTP 200"
+
+      - name: Run Functional Test for Data Integrity
+        run: |
+          RESPONSE=$(curl -s "$CLOUD_RUN_URL/data")
+          if [[ "$RESPONSE" != *"id":123* ]]; then
+            echo "Functional test failed: Expected data not found in response"
+            exit 1
+          fi
+          echo "Functional test passed: Expected data found in response"
