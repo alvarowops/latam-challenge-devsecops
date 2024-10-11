@@ -102,6 +102,20 @@ jobs:
           fi
           echo "Prueba funcional pasada: Los datos esperados se encontraron en la respuesta"
 
+      - name: Publicar mensaje en Pub/Sub y verificar ingreso
+        env:
+          CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          gcloud pubsub topics publish data-ingest-topic --message '{"id":456,"name":"nuevo"}'
+          sleep 10
+          RESPONSE=$(curl -s "$CLOUD_RUN_URL/data")
+          if [[ "$RESPONSE" != *'"id":456'* ]]; then
+            echo "Prueba de integración fallida: El mensaje no fue ingresado correctamente a la base de datos"
+            exit 1
+          fi
+          echo "Prueba de integración pasada: El mensaje fue ingresado y se refleja en la API"
+
   unit_tests:
     name: Ejecutar pruebas unitarias
     runs-on: ubuntu-latest
