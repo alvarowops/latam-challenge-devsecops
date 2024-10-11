@@ -133,6 +133,7 @@ jobs:
       - name: Instalar dependencias
         run: |
           pip install -r Flask-api/requirements.txt
+          pip install pytest
 
       - name: Ejecutar pruebas unitarias
         run: |
