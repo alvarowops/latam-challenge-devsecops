@@ -25,13 +25,13 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          echo "$GCP_SA_KEY" | docker login -u _json_key --password-stdin https://us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}
+          echo "$GCP_SA_KEY" | docker login -u _json_key --password-stdin https://us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}
 
       - name: Build and Push Docker Image
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker buildx build --platform linux/amd64 -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG -f Flask-api/Dockerfile --push Flask-api
+          docker buildx build --platform linux/amd64 -t us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG -f Flask-api/Dockerfile --push Flask-api
 
   deploy:
     name: Deploy to Cloud Run
@@ -53,7 +53,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           gcloud run deploy data-api \
-            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG \
+            --image us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG \
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
