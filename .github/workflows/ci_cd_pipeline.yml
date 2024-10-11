@@ -72,6 +72,7 @@ jobs:
             exit 1
           fi
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
+          echo "::set-output name=cloud_run_url::$CLOUD_RUN_URL"
 
   test:
     name: Ejecutar pruebas de integración y funcionales
@@ -80,6 +81,7 @@ jobs:
 
     steps:
       - name: Obtener URL del servicio desplegado
+        id: get_url
         run: echo "CLOUD_RUN_URL=${{ env.CLOUD_RUN_URL }}"
 
       - name: Ejecutar prueba de integración
