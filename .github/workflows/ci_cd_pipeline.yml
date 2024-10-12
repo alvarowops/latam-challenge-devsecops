@@ -77,7 +77,6 @@ jobs:
             exit 1
           fi
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
-          echo "::set-output name=cloud_run_url::$CLOUD_RUN_URL"
 
   test:
     name: Ejecutar pruebas de integración y funcionales
@@ -86,16 +85,14 @@ jobs:
 
     steps:
       - name: Obtener URL del servicio desplegado
-        run: echo "CLOUD_RUN_URL=${{ env.CLOUD_RUN_URL }}"
-      
-      - name: Ejecutar prueba de integración
-        env:
-          CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
         run: |
           if [ -z "$CLOUD_RUN_URL" ]; then
             echo "Error: CLOUD_RUN_URL no está definida"
             exit 1
           fi
+
+      - name: Ejecutar prueba de integración
+        run: |
           for i in {1..5}; do
             RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$CLOUD_RUN_URL/data" || echo "000")
             if [ "$RESPONSE" -eq 200 ]; then
