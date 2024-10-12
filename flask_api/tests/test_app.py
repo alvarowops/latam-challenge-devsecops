@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from app import app  # Esto asume que `app.py` está en la carpeta `Flask-api`
+from flask_api.app import app  # Cambia el nombre del módulo si has renombrado la carpeta
 
 class TestBigQueryAPI(unittest.TestCase):
     
@@ -15,7 +15,7 @@ class TestBigQueryAPI(unittest.TestCase):
 
         # Crear cliente de pruebas
         tester = app.test_client(self)
-        response = tester.get('/data')  # Asegúrate de que la ruta exista en tu app
+        response = tester.get('/data')
 
         # Verificar que el código de estado es 200
         self.assertEqual(response.status_code, 200)
