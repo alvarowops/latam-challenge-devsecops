@@ -68,7 +68,7 @@ jobs:
         run: |
           CLOUD_RUN_URL=$(gcloud run services describe data-api --region us-east4 --format 'value(status.url)')
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL"
-          if [ -z "$CLOUD_RUN_URL" ]; then
+          if [ -z "$CLOUD_RUN_URL" ];then
             echo "Error: No se pudo obtener la URL del servicio de Cloud Run"
             exit 1
           fi
@@ -93,7 +93,7 @@ jobs:
         run: |
           CLOUD_RUN_URL=$(gcloud run services describe data-api --region us-east4 --format 'value(status.url)')
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL"
-          if [ -z "$CLOUD_RUN_URL" ]; then
+          if [ -z "$CLOUD_RUN_URL" ];then
             echo "Error: CLOUD_RUN_URL no está definida"
             exit 1
           fi
@@ -103,7 +103,7 @@ jobs:
         run: |
           for i in {1..5}; do
             RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$CLOUD_RUN_URL/data" || echo "000")
-            if [ "$RESPONSE" -eq 200 ]; then
+            if [ "$RESPONSE" -eq 200 ];then
               echo "Prueba de integración pasada: La API devolvió HTTP 200"
               exit 0
             fi
@@ -116,7 +116,7 @@ jobs:
       - name: Ejecutar prueba funcional de integridad de datos
         run: |
           RESPONSE=$(curl -s "$CLOUD_RUN_URL/data")
-          if [[ "$RESPONSE" != *'"id":123'* ]]; then
+          if [[ "$RESPONSE" != *'"id":123'* ]];then
             echo "Prueba funcional fallida: Los datos esperados no se encontraron en la respuesta"
             exit 1
           fi
@@ -130,7 +130,7 @@ jobs:
           gcloud pubsub topics publish data-ingest-topic --message '{"id":456,"name":"nuevo"}'
           sleep 10
           RESPONSE=$(curl -s "$CLOUD_RUN_URL/data")
-          if [[ "$RESPONSE" != *'"id":456'* ]]; then
+          if [[ "$RESPONSE" != *'"id":456'* ]];then
             echo "Prueba de integración fallida: El mensaje no fue ingresado correctamente a la base de datos"
             exit 1
           fi
@@ -157,7 +157,7 @@ jobs:
       - name: Mockear BigQuery en pruebas unitarias
         run: |
           echo "Configurando mocks para pruebas unitarias"
-          python -c "from unittest.mock import patch; patch('google.cloud.bigquery.Client').start(); print('Mocks configurados')"
+          python -c "from unittest.mock import patch; patch('google.cloud.bigquery.Client', autospec=True).start(); print('Mocks configurados')"
 
       - name: Ejecutar prueba unitaria simple
         env:
@@ -167,7 +167,7 @@ jobs:
           APP_PID=$!
           sleep 5
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/data || echo "000")
-          if [ "$RESPONSE" -ne 200 ]; then
+          if [ "$RESPONSE" -ne 200 ];then
             echo "Error: El servidor Flask no está respondiendo correctamente"
             kill $APP_PID
             exit 1
