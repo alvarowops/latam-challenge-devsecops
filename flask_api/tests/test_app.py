@@ -1,7 +1,8 @@
 import unittest
 from unittest.mock import patch
-from flask_api.app import app
-  
+import sys
+sys.path.append('flask_api')  # Agrega manualmente el path para que encuentre flask_api
+from app import app  # Importar app desde app.py
 
 class TestBigQueryAPI(unittest.TestCase):
     
