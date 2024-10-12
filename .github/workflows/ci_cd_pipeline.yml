@@ -76,7 +76,6 @@ jobs:
             echo "Error: No se pudo obtener la URL del servicio de Cloud Run"
             exit 1
           fi
-          echo "::set-output name=cloud_run_url::$CLOUD_RUN_URL"
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
 
   test:
@@ -122,10 +121,6 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Establecer variable de entorno para PROJECT_ID
-        run: |
-          echo "PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" >> $GITHUB_ENV
-
       - name: Instalar dependencias
         run: |
           pip install -r Flask-api/requirements.txt
@@ -133,12 +128,12 @@ jobs:
       - name: Mockear BigQuery en pruebas unitarias
         run: |
           echo "Configurando mocks para pruebas unitarias"
-          # Puedes agregar un mock de BigQuery aquí si es necesario.
-          echo "Mocking completado"
+          pip install unittest-mock
+          python -c "from unittest.mock import patch; import pytest; patch('google.cloud.bigquery.Client').start(); pytest.main()"
 
       - name: Ejecutar prueba unitaria simple
         env:
-          PROJECT_ID: ${{ env.PROJECT_ID }}
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           python Flask-api/app.py &
           APP_PID=$!
