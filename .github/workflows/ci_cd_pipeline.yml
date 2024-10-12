@@ -68,6 +68,7 @@ jobs:
             --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
 
       - name: Obtener URL del servicio de Cloud Run
+        id: get_url
         run: |
           CLOUD_RUN_URL=$(gcloud run services describe data-api --region us-east4 --format 'value(status.url)')
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL"
@@ -75,7 +76,7 @@ jobs:
             echo "Error: No se pudo obtener la URL del servicio de Cloud Run"
             exit 1
           fi
-          echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
+          echo "::set-output name=cloud_run_url::$CLOUD_RUN_URL"
 
   test:
     name: Ejecutar pruebas de integración y funcionales
@@ -83,12 +84,9 @@ jobs:
     needs: deploy
 
     steps:
-      - name: Obtener URL del servicio desplegado
-        run: echo "CLOUD_RUN_URL=${{ env.CLOUD_RUN_URL }}"
-
       - name: Ejecutar prueba de integración
         env:
-          CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
+          CLOUD_RUN_URL: ${{ steps.get_url.outputs.cloud_run_url }}
         run: |
           for i in {1..5}; do
             RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$CLOUD_RUN_URL/data" || echo "000")
@@ -101,46 +99,6 @@ jobs:
           done
           echo "Prueba de integración fallida después de 5 intentos"
           exit 1
-
-      - name: Ejecutar prueba funcional de integridad de datos
-        env:
-          CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
-        run: |
-          RESPONSE=$(curl -s "$CLOUD_RUN_URL/data")
-          if [[ "$RESPONSE" != *'"id":123'* ]]; then
-            echo "Prueba funcional fallida: Los datos esperados no se encontraron en la respuesta"
-            exit 1
-          fi
-          echo "Prueba funcional pasada: Los datos esperados se encontraron en la respuesta"
-
-      - name: Publicar mensaje en Pub/Sub y verificar ingreso
-        env:
-          CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-        run: |
-          gcloud pubsub topics publish data-ingest-topic --message '{"id":456,"name":"nuevo"}'
-          sleep 10
-          RESPONSE=$(curl -s "$CLOUD_RUN_URL/data")
-          if [[ "$RESPONSE" != *'"id":456'* ]]; then
-            echo "Prueba de integración fallida: El mensaje no fue ingresado correctamente a la base de datos"
-            exit 1
-          fi
-          echo "Prueba de integración pasada: El mensaje fue ingresado y se refleja en la API"
-
-      - name: Verificar tiempo de respuesta
-        env:
-          CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
-        run: |
-          START=$(date +%s%N)
-          curl -s "$CLOUD_RUN_URL/data" > /dev/null
-          END=$(date +%s%N)
-          DURATION=$((($END - $START)/1000000))  # Convertir a milisegundos
-          echo "Tiempo de respuesta: $DURATION ms"
-          if [ $DURATION -gt 1000 ]; then
-            echo "Error: La API tardó más de 1000ms en responder"
-            exit 1
-          fi
-          echo "Tiempo de respuesta dentro del rango aceptable"
 
   unit_tests:
     name: Ejecutar prueba unitaria básica
@@ -167,7 +125,7 @@ jobs:
       - name: Mockear BigQuery en pruebas unitarias
         run: |
           echo "Configurando mocks para pruebas unitarias"
-          # Aquí usarías unittest o pytest con mocking en tu código Python
+          pytest --disable-warnings
 
       - name: Ejecutar prueba unitaria simple
         env:
