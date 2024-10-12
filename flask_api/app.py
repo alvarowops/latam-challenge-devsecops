@@ -21,16 +21,12 @@ if not PROJECT_ID:
 else:
     logger.info(f"PROJECT_ID: {PROJECT_ID}")
 
-# Configurar cliente de BigQuery
-try:
-    client = bigquery.Client()
-    logger.info("Cliente de BigQuery inicializado correctamente.")
-except Exception as e:
-    logger.error(f"Error al inicializar el cliente de BigQuery: {e}")
-
 @app.route('/data', methods=['GET'])
 def get_data():
     try:
+        # Mover la inicialización del cliente de BigQuery aquí
+        client = bigquery.Client()
+
         # Consultar BigQuery
         query = f"""
         SELECT * FROM `{PROJECT_ID}.analytics_dataset.example_table` LIMIT 10
