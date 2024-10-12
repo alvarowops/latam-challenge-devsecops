@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from flask_api.app import app  # Asegúrate de que la importación sea correcta
+from flask_api.app import app
 
 class TestBigQueryAPI(unittest.TestCase):
     
@@ -8,7 +8,7 @@ class TestBigQueryAPI(unittest.TestCase):
     def test_get_data(self, mock_bigquery_client):
         # Simular la respuesta de BigQuery
         mock_query_job = mock_bigquery_client.return_value.query.return_value
-        mock_query_job.result.return_value = [
+        mock_query_job.result = [
             {"id": 123, "name": "test"},
             {"id": 456, "name": "test2"}
         ]
@@ -21,7 +21,10 @@ class TestBigQueryAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Verificar que los datos están presentes en la respuesta
-        self.assertIn(b'"id": 123', response.data)
+        response_json = response.get_json()
+        self.assertEqual(len(response_json), 2)
+        self.assertEqual(response_json[0]["id"], 123)
+        self.assertEqual(response_json[1]["name"], "test2")
 
 if __name__ == '__main__':
     unittest.main()
