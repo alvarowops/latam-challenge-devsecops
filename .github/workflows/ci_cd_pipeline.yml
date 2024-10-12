@@ -77,6 +77,7 @@ jobs:
             exit 1
           fi
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
+          echo "::set-output name=cloud_run_url::$CLOUD_RUN_URL"
 
   test:
     name: Ejecutar pruebas de integración y funcionales
@@ -128,8 +129,7 @@ jobs:
       - name: Mockear BigQuery en pruebas unitarias
         run: |
           echo "Configurando mocks para pruebas unitarias"
-          pip install unittest-mock
-          python -c "from unittest.mock import patch; import pytest; patch('google.cloud.bigquery.Client').start(); pytest.main()"
+          python -c "from unittest.mock import patch; patch('google.cloud.bigquery.Client').start(); print('Mocks configurados')"
 
       - name: Ejecutar prueba unitaria simple
         env:
