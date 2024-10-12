@@ -158,6 +158,10 @@ jobs:
         run: |
           pip install -r Flask-api/tests/dev-requirements.txt
 
+      - name: Establecer PYTHONPATH para encontrar módulos
+        run: |
+          export PYTHONPATH=$PYTHONPATH:./Flask-api
+
       - name: Ejecutar pruebas unitarias
         run: |
           echo "Ejecutando pruebas unitarias"
