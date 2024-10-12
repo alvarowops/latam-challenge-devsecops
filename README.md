@@ -28,7 +28,7 @@ La solución diseñada para el desafío consta de las siguientes fases:
 
 ### Diagrama de Arquitectura
 
-<iframe width="768" height="432" src="https://miro.com/app/live-embed/uXjVLT4KZ2g=/?moveToViewport=118,-448,2606,1056&embedId=844830275927" frameborder="0" scrolling="no" allow="fullscreen; clipboard-read; clipboard-write" allowfullscreen></iframe>
+![Diagrama de Arquitectura](https://miro.com/app/live-embed/uXjVLT4KZ2g=/?moveToViewport=118,-448,2606,1056&embedId=844830275927)
 
 El diagrama muestra claramente el flujo de datos desde la ingesta hasta la exposición, destacando los diferentes servicios de Google Cloud utilizados, tales como Pub/Sub, Cloud Function, BigQuery y Cloud Run.
 
@@ -83,3 +83,4 @@ Se utiliza GitHub Actions como herramienta de CI/CD para automatizar la construc
 ## Información del Desafío
 
 Se han seguido las instrucciones proporcionadas, incluyendo el desarrollo de una infraestructura automatizada y pruebas para garantizar la calidad del servicio.
+
