@@ -4,7 +4,7 @@ from flask_api.app import app  # Asegúrate de que la importación sea correcta
 
 class TestBigQueryAPI(unittest.TestCase):
     
-    @patch('google.cloud.bigquery.Client')
+    @patch('flask_api.app.bigquery.Client')
     def test_get_data(self, mock_bigquery_client):
         # Simular la respuesta de BigQuery
         mock_query_job = mock_bigquery_client.return_value.query.return_value
@@ -21,7 +21,7 @@ class TestBigQueryAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Verificar que los datos están presentes en la respuesta
-        self.assertIn(b'"id":123', response.data)
+        self.assertIn(b'"id": 123', response.data)
 
 if __name__ == '__main__':
     unittest.main()
