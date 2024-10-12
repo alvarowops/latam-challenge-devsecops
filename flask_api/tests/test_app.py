@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from flask_api.app import app
 
 class TestBigQueryAPI(unittest.TestCase):
@@ -7,11 +7,12 @@ class TestBigQueryAPI(unittest.TestCase):
     @patch('flask_api.app.bigquery.Client')
     def test_get_data(self, mock_bigquery_client):
         # Simular la respuesta de BigQuery
-        mock_query_job = mock_bigquery_client.return_value.query.return_value
-        mock_query_job.result = [
+        mock_query_job = MagicMock()
+        mock_query_job.result.return_value = [
             {"id": 123, "name": "test"},
-            {"id": 456, "name": "test2"}
+            {"id": 456, "name": "nuevo"}
         ]
+        mock_bigquery_client.return_value.query.return_value = mock_query_job
 
         # Crear cliente de pruebas
         tester = app.test_client(self)
@@ -24,7 +25,7 @@ class TestBigQueryAPI(unittest.TestCase):
         response_json = response.get_json()
         self.assertEqual(len(response_json), 2)
         self.assertEqual(response_json[0]["id"], 123)
-        self.assertEqual(response_json[1]["name"], "test2")
+        self.assertEqual(response_json[1]["name"], "nuevo")
 
 if __name__ == '__main__':
     unittest.main()
