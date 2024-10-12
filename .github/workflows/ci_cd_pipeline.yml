@@ -72,7 +72,6 @@ jobs:
             exit 1
           fi
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
-          echo "::set-output name=cloud_run_url::$CLOUD_RUN_URL"
 
   test:
     name: Ejecutar pruebas de integración y funcionales
@@ -81,7 +80,6 @@ jobs:
 
     steps:
       - name: Obtener URL del servicio desplegado
-        id: get_url
         run: echo "CLOUD_RUN_URL=${{ env.CLOUD_RUN_URL }}"
 
       - name: Ejecutar prueba de integración
@@ -105,7 +103,7 @@ jobs:
           CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
         run: |
           RESPONSE=$(curl -s "$CLOUD_RUN_URL/data")
-          if [[ "$RESPONSE" != *"id":123* ]]; then
+          if [[ "$RESPONSE" != *'"id":123'* ]]; then
             echo "Prueba funcional fallida: Los datos esperados no se encontraron en la respuesta"
             exit 1
           fi
@@ -154,7 +152,7 @@ jobs:
           python Flask-api/app.py &
           APP_PID=$!
           sleep 5
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://127.0.0.1:8080/data || echo "000")
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/data || echo "000")
           if [ "$RESPONSE" -ne 200 ]; then
             echo "Error: El servidor Flask no está respondiendo correctamente"
             kill $APP_PID
