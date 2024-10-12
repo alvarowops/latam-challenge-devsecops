@@ -66,6 +66,9 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Obtener URL del servicio de Cloud Run
+        run: |
           CLOUD_RUN_URL=$(gcloud run services describe data-api --region us-east4 --format 'value(status.url)')
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL"
           if [ -z "$CLOUD_RUN_URL" ]; then
