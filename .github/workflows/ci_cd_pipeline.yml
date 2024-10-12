@@ -77,6 +77,7 @@ jobs:
             exit 1
           fi
           echo "::set-output name=cloud_run_url::$CLOUD_RUN_URL"
+          echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
 
   test:
     name: Ejecutar pruebas de integración y funcionales
@@ -86,7 +87,7 @@ jobs:
     steps:
       - name: Ejecutar prueba de integración
         env:
-          CLOUD_RUN_URL: ${{ steps.get_url.outputs.cloud_run_url }}
+          CLOUD_RUN_URL: ${{ env.CLOUD_RUN_URL }}
         run: |
           for i in {1..5}; do
             RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$CLOUD_RUN_URL/data" || echo "000")
