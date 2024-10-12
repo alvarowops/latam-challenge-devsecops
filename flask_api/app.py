@@ -35,7 +35,7 @@ def get_data():
         query_job = client.query(query)
 
         # Obtener resultados
-        results = [dict(row) for row in query_job]
+        results = [dict(row) for row in query_job.result()]
         logger.info(f"Resultados obtenidos: {results}")
         return jsonify(results), 200
     except Exception as e:
