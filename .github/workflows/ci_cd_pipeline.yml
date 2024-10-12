@@ -77,6 +77,7 @@ jobs:
             exit 1
           fi
           echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV
+          echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV # Usar archivo de entorno
 
   test:
     name: Ejecutar pruebas de integración y funcionales
@@ -84,12 +85,23 @@ jobs:
     needs: deploy
 
     steps:
+      - name: Autenticarse con Google Cloud
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          echo "$GCP_SA_KEY" | gcloud auth activate-service-account --key-file=-
+          gcloud auth list
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+
       - name: Obtener URL del servicio desplegado
         run: |
+          CLOUD_RUN_URL=$(gcloud run services describe data-api --region us-east4 --format 'value(status.url)')
+          echo "CLOUD_RUN_URL=$CLOUD_RUN_URL"
           if [ -z "$CLOUD_RUN_URL" ]; then
             echo "Error: CLOUD_RUN_URL no está definida"
             exit 1
           fi
+          echo "CLOUD_RUN_URL=$CLOUD_RUN_URL" >> $GITHUB_ENV # Guardar la URL en el entorno
 
       - name: Ejecutar prueba de integración
         run: |
@@ -122,6 +134,7 @@ jobs:
       - name: Instalar dependencias
         run: |
           pip install -r Flask-api/requirements.txt
+          pip install unittest-mock # Instalar unittest-mock
 
       - name: Mockear BigQuery en pruebas unitarias
         run: |
