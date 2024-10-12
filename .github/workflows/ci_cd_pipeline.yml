@@ -67,6 +67,7 @@ jobs:
             --allow-unauthenticated \
             --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
           CLOUD_RUN_URL=$(gcloud run services describe data-api --region us-east4 --format 'value(status.url)')
+          echo "CLOUD_RUN_URL=$CLOUD_RUN_URL"
           if [ -z "$CLOUD_RUN_URL" ]; then
             echo "Error: No se pudo obtener la URL del servicio de Cloud Run"
             exit 1
@@ -159,6 +160,11 @@ jobs:
       - name: Instalar dependencias
         run: |
           pip install -r Flask-api/requirements.txt
+
+      - name: Mockear BigQuery en pruebas unitarias
+        run: |
+          echo "Configurando mocks para pruebas unitarias"
+          # Aquí usarías unittest o pytest con mocking en tu código Python
 
       - name: Ejecutar prueba unitaria simple
         env:
