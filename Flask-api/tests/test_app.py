@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from app import app  # Asegúrate de que tu app está importada correctamente
+from Flask_api.app import app  # Importando correctamente desde Flask_api
 
 class TestBigQueryAPI(unittest.TestCase):
     
@@ -21,7 +21,7 @@ class TestBigQueryAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Verificar que los datos están presentes en la respuesta
-        self.assertIn(b'"id":123', response.data)  # Aquí ajustamos la condición
+        self.assertIn(b'"id":123', response.data)
 
 if __name__ == '__main__':
     unittest.main()
