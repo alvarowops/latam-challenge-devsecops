@@ -13,7 +13,5 @@ __pycache__/
 *.tfstate
 *.tfstate.backup
 
-# Ignorar archivos que podrían contener información de compilación o dependencias
-node_modules/
-build/
-dist/
+venv/
+
