@@ -12,6 +12,8 @@ __pycache__/
 .terraform/
 *.tfstate
 *.tfstate.backup
+Terraform/*.tfstate*
+Terraform/*.tfstate.backup
 
-venv/
-
+# Ignorar el entorno virtual en Flask-api
+Flask-api/venv/
