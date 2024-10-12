@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from app import app
+from flask_api.app import app
   
 
 class TestBigQueryAPI(unittest.TestCase):
