@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
-from flask_api.app import app  # La carpeta ahora es flask_api en minúsculas
+from app import app
+  
 
 class TestBigQueryAPI(unittest.TestCase):
     
