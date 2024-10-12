@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from Flask_api.app import app  # Importando correctamente desde Flask_api
+from app import app  # Esto asume que `app.py` está en la carpeta `Flask-api`
 
 class TestBigQueryAPI(unittest.TestCase):
     
