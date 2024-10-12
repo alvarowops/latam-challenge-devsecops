@@ -150,28 +150,15 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Instalar dependencias
+      - name: Instalar dependencias de la aplicación
         run: |
           pip install -r Flask-api/requirements.txt
 
-      - name: Mockear BigQuery en pruebas unitarias
+      - name: Instalar dependencias de testing
         run: |
-          echo "Configurando mocks para pruebas unitarias"
-          python -c "from unittest.mock import patch; patch('google.cloud.bigquery.Client', autospec=True).start(); print('Mocks configurados')"
+          pip install -r Flask-api/tests/dev-requirements.txt
 
-      - name: Ejecutar prueba unitaria simple
-        env:
-          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      - name: Ejecutar pruebas unitarias
         run: |
-          python Flask-api/app.py &
-          APP_PID=$!
-          sleep 5
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/data || echo "000")
-          if [ "$RESPONSE" -ne 200 ];then
-            echo "Error: El servidor Flask no está respondiendo correctamente"
-            kill $APP_PID
-            exit 1
-          else
-            echo "Prueba unitaria pasada: El servidor Flask está respondiendo correctamente"
-            kill $APP_PID
-          fi
+          echo "Ejecutando pruebas unitarias"
+          pytest Flask-api/tests/test_app.py
