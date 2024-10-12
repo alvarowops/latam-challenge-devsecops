@@ -153,7 +153,6 @@ jobs:
       - name: Instalar dependencias
         run: |
           pip install -r Flask-api/requirements.txt
-          pip install unittest-mock
 
       - name: Mockear BigQuery en pruebas unitarias
         run: |
