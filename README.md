@@ -376,7 +376,7 @@ Se propone utilizar Google Cloud Monitoring para recolectar y visualizar las mé
 ### Instrucciones
 #### Clonar el Repositorio
 ```bash
-git clone https://github.com/tu-usuario/latam-challenge-devsecops.git
+git clone https://github.com/alvarowops/latam-challenge-devsecops.git
 ```
 
 #### Configurar Variables de Entorno
@@ -427,4 +427,4 @@ curl https://tu-url-de-cloud-run/data
 - **Repositorio de Código**: GitHub
 - **Docker Image**: Almacenada en Google Artifact Registry.
 
-*Nota: Reemplaza `tu-usuario` y `tu-id-de-proyecto` con tu nombre de usuario de GitHub y el ID de tu proyecto de Google Cloud, respectivamente.*
+*Nota: Reemplaza  `tu-id-de-proyecto`   el ID de tu proyecto de Google Cloud, respectivamente.*
