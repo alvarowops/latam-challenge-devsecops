@@ -353,6 +353,16 @@ Estas pruebas aseguran que:
 - **Pruebas de Carga**: Simular múltiples solicitudes concurrentes al endpoint `/data` para evaluar el rendimiento y escalabilidad de la API.
 - **Pruebas de Seguridad**: Implementar autenticación en la API y verificar que solo usuarios autorizados puedan acceder a los datos.
 
+### Puntos Críticos del Sistema
+1. **Cloud Function Fallida**: Si la Cloud Function falla en el procesamiento, los datos no se ingresarán correctamente en BigQuery. Se recomienda implementar reintentos automáticos y alertas en caso de fallos repetidos.
+2. **Latencia en BigQuery**: Consultas grandes en BigQuery podrían generar latencia. Se sugiere implementar caché para resultados comunes.
+3. **Escalabilidad de Cloud Run**: Un aumento en el número de solicitudes podría afectar el rendimiento. Utilizar autoescalado en Cloud Run y balanceadores de carga para soportar grandes volúmenes de tráfico.
+
+### Propuestas para Robustecer el Sistema
+- **Balanceo de Carga**: Configurar balanceadores de carga para distribuir las solicitudes de manera uniforme y mejorar la escalabilidad.
+- **Política de Reintentos**: Establecer políticas de reintentos para Cloud Functions fallidas, de manera que la ingesta de datos sea más robusta.
+- **Almacenamiento en Caché**: Implementar almacenamiento en caché para resultados de consultas BigQuery frecuentes, mejorando los tiempos de respuesta.
+
 ## Parte 4: Métricas y Monitoreo
 ### Métricas Propuestas
 - **Tasa de Errores de la Cloud Function**: Monitorear la cantidad de ejecuciones fallidas.
@@ -360,26 +370,29 @@ Estas pruebas aseguran que:
 - **Número de Mensajes Pendientes en Pub/Sub**: Vigilar si hay acumulación de mensajes, lo que indicaría problemas en la ingesta.
 
 ### Herramienta de Visualización
-Se propone utilizar Google Cloud Monitoring para recolectar y visualizar las métricas. Se pueden configurar paneles personalizados que muestren las métricas críticas.
+Se propone utilizar Google Cloud Monitoring y Grafana para recolectar y visualizar las métricas. Google Cloud Monitoring recogerá métricas de servicios individuales mientras que Grafana se utilizará para crear paneles de control personalizados.
+
+### Implementación del Monitoreo
+- **Google Cloud Monitoring** se integra directamente con cada servicio de Google Cloud. Las métricas se envían a Google Cloud Monitoring, donde se pueden configurar alertas. Grafana se conectará mediante la API de Google Cloud para crear paneles más detallados.
+- **Escalamiento**: Al escalar la solución a 50 sistemas similares, se agregarían métricas agregadas y promedios, como la tasa de éxito de despliegue y la utilización de recursos compartidos. Filtros inteligentes en Grafana ayudarían a enfocarse en problemas críticos específicos.
+
+### Dificultades de Escalabilidad
+A medida que se escala la solución, una dificultad importante sería evitar la saturación de paneles de monitoreo. Es fundamental usar técnicas de agregación y filtrado inteligente para evitar sobrecargar a los equipos con información innecesaria.
 
 ## Parte 5: Alertas y SRE (Opcional)
 ### Reglas de Alertas y Umbrales
 - **Tasa de Errores de la Cloud Function**: Alertar si la tasa de errores supera el 5% en un período de 5 minutos.
   - Argumentación: Una alta tasa de errores indica problemas en la ingesta de datos.
-
 - **Tiempo de Respuesta de la API**: Alertar si el tiempo de respuesta promedio excede los 500 ms durante 5 minutos.
   - Argumentación: Un aumento en la latencia afecta la experiencia del usuario.
-
 - **Mensajes Pendientes en Pub/Sub**: Alertar si hay más de 100 mensajes pendientes por más de 10 minutos.
   - Argumentación: Indica que la Cloud Function no está procesando los mensajes a tiempo.
 
 ### SLIs y SLOs
 - **SLI de Disponibilidad de la API**: SLO: 99.9% de disponibilidad mensual.
   - Justificación: Asegura que la API esté disponible para los usuarios la mayor parte del tiempo.
-
 - **SLI de Latencia de la API**: SLO: 95% de las solicitudes con tiempo de respuesta menor a 300 ms.
   - Justificación: Garantiza una experiencia de usuario satisfactoria.
-
 - **SLI de Procesamiento de la Cloud Function**: SLO: Procesar el 99% de los mensajes en menos de 1 minuto desde su recepción.
   - Justificación: Asegura que los datos estén disponibles casi en tiempo real.
 
