@@ -146,7 +146,6 @@ resource "google_cloudfunctions_function" "pubsub_to_bigquery" {
 Se crearon cuentas de servicio específicas para la API y la Cloud Function, asignándoles los roles necesarios para interactuar con los servicios de Google Cloud.
 
 ### Escaneo de Seguridad con Trivy
-
 Durante el desarrollo del desafío, se realizó un análisis de seguridad utilizando Trivy para asegurar que la imagen Docker estuviera libre de vulnerabilidades críticas. A continuación se muestra el resultado del escaneo:
 
 ```
@@ -167,6 +166,7 @@ Total: 0 (UNKNOWN: 0, LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0)
 ```
 
 Este resultado muestra que no se encontraron vulnerabilidades en la imagen, lo cual asegura que el sistema cumple con los estándares de seguridad esperados.
+
 ## Parte 2: Aplicaciones y Flujo CI/CD
 ### API HTTP
 #### Descripción
@@ -297,7 +297,12 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          gcloud run deploy data-api             --image us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG             --region us-east4             --platform managed             --allow-unauthenticated             --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          gcloud run deploy data-api \
+            --image us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG \
+            --region us-east4 \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
 ```
 
 ### Ingesta de Datos (Opcional)
@@ -449,4 +454,4 @@ curl https://tu-url-de-cloud-run/data
 - **Repositorio de Código**: GitHub
 - **Docker Image**: Almacenada en Google Artifact Registry.
 
-*Nota: Reemplaza  `tu-id-de-proyecto`   el ID de tu proyecto de Google Cloud, respectivamente.*
+*Nota: Reemplaza `tu-id-de-proyecto` con el ID de tu proyecto de Google Cloud, respectivamente.*
