@@ -1,153 +1,600 @@
-# latam-challenge-devsecops
+Desafío Técnico DevSecOps/SRE - LATAM Airlines
+==============================================
 
-## Contexto
+Introducción
+------------
 
-En Advanced Analytics se construyen productos de datos que al ser consumidos añaden valor a diferentes áreas de la aerolínea LATAM. Los servicios exhiben datos obtenidos por procesos de analítica mediante APIs, tablas y procesos recurrentes. Uno de los principales pilares de la cultura es la resiliencia y calidad de lo que se construye, lo cual permite preservar la correcta operación de los servicios y no deteriorar el valor añadido hacia otras áreas.
+### Contexto
 
-## Objetivo del Desafío
+En Advanced Analytics de LATAM Airlines, se construyen productos de datos que, al ser consumidos, añaden valor a diferentes áreas de la aerolínea. Los servicios exhiben datos obtenidos por procesos de analítica mediante APIs, tablas y procesos recurrentes. Uno de los principales pilares de nuestra cultura es la resiliencia y calidad de lo que construimos. Esto nos permite preservar la correcta operación de nuestros servicios y no deteriorar el valor añadido hacia el resto de áreas.
 
-El desafío técnico DevSecOps/SRE tiene como objetivo desarrollar un sistema en la nube que pueda ingestar, almacenar y exponer datos mediante el uso de Infraestructura como Código (IaC) y desplegarlo utilizando flujos CI/CD. Además, se busca implementar pruebas de calidad, monitoreo y alertas para asegurar y monitorear la salud del sistema.
+### Objetivo del Desafío
 
-## Solución Propuesta
+El desafío técnico DevSecOps/SRE tiene como objetivo desarrollar un sistema en la nube para ingestar, almacenar y exponer datos mediante el uso de Infraestructura como Código (IaC) y despliegue con flujos CI/CD. Además, se busca implementar pruebas de calidad, monitoreo y alertas para asegurar y monitorear la salud del sistema.
+
+Solución Propuesta
+------------------
 
 ### Arquitectura del Sistema
 
-La solución diseñada para el desafío consta de las siguientes fases:
+La solución diseñada consta de los siguientes componentes:
 
-1. **Ingesta de Datos**:
-   - Utilización de **Google Cloud Pub/Sub** para recibir mensajes con los datos.
-   - Suscripción a un **tópico** para asegurar la recepción de todos los mensajes enviados al sistema.
+1.  **Ingesta de Datos**:
 
-2. **Procesamiento**:
-   - Uso de una **Cloud Function** que, al recibir un mensaje de Pub/Sub, procesa la información y la inserta en un **dataset de Google BigQuery**.
-   - Los datos se almacenan en una tabla llamada `example_table` dentro del dataset `analytics_dataset` para poder ser consultados posteriormente.
+    -   Utilización de **Google Cloud Pub/Sub** para recibir mensajes con los datos.
+    -   Suscripción a un **tópico** para asegurar la recepción de todos los mensajes enviados al sistema.
+2.  **Procesamiento**:
 
-3. **Exposición de Datos**:
-   - Se levanta un endpoint HTTP utilizando **Google Cloud Run**. Este endpoint sirve para exponer los datos almacenados en BigQuery a través de una API llamada `data-api`.
-   - Los usuarios finales pueden consumir los datos almacenados en BigQuery mediante solicitudes HTTP GET al endpoint `/data`.
+    -   Uso de una **Cloud Function** que, al recibir un mensaje de Pub/Sub, procesa la información y la inserta en un **dataset de Google BigQuery**.
+    -   Los datos se almacenan en una tabla llamada `example_table` dentro del dataset `analytics_dataset` para poder ser consultados posteriormente.
+3.  **Exposición de Datos**:
+
+    -   Se levanta un endpoint HTTP utilizando **Google Cloud Run**. Este endpoint sirve para exponer los datos almacenados en BigQuery a través de una API llamada `data-api`.
+    -   Los usuarios finales pueden consumir los datos almacenados en BigQuery mediante solicitudes HTTP GET al endpoint `/data`.
 
 ### Diagrama de Arquitectura
 
-![Diagrama de Arquitectura](image.png)
-
-El diagrama muestra claramente el flujo de datos desde la ingesta hasta la exposición, destacando los diferentes servicios de Google Cloud utilizados, tales como Pub/Sub, Cloud Function, BigQuery y Cloud Run.
+*Nota: El diagrama muestra el flujo de datos desde la ingesta hasta la exposición, destacando los diferentes servicios de Google Cloud utilizados, tales como Pub/Sub, Cloud Function, BigQuery y Cloud Run.*
 
 ### Descripción de la Infraestructura
 
-- **Google Cloud Pub/Sub**: Utilizado para recibir mensajes que serán procesados. Es ideal para la transmisión de datos en tiempo real.
-- **Google Cloud Function**: Encargada de procesar los mensajes de Pub/Sub y cargarlos en BigQuery.
-- **Google BigQuery**: Almacena los datos recibidos para realizar consultas analíticas.
-- **Google Cloud Run**: Permite exponer la API para el consumo de datos, utilizando un contenedor desplegado de manera serverless.
-- **IAM y Cuentas de Servicio**: Las cuentas de servicio se utilizan para otorgar permisos específicos a Cloud Function y Cloud Run, asegurando así un control adecuado de acceso.
+La infraestructura necesaria para ingestar, almacenar y exponer datos se implementó utilizando **Terraform**, siguiendo el principio de Infraestructura como Código (IaC). A continuación, se describen los componentes principales:
 
-### Descripción del CI/CD
+#### Provider de Google Cloud
 
-Se utiliza GitHub Actions como herramienta de CI/CD para automatizar la construcción, despliegue y pruebas de la aplicación.
+hcl
 
-- **Construir Imagen Docker**: Se construye una imagen Docker que contiene la API `data-api` y se publica en Google Artifact Registry.
-- **Desplegar en Cloud Run**: La imagen Docker publicada se despliega en Google Cloud Run para exponer el endpoint `/data`.
-- **Pruebas de Integración**: Se verifican los datos expuestos por la API mediante solicitudes GET para confirmar que los datos se están mostrando correctamente.
+Copiar código
 
-### Mejoras Futuras
+`provider "google" {
+  project = var.project_id
+  region  = var.region
+}`
 
-- **Ampliar Pruebas de Calidad**: Se pueden añadir pruebas más extensas para validar casos límite, asegurar la disponibilidad del servicio y probar la latencia.
-- **Optimización de Costos**: Evaluar el uso de instancias reservadas y ajustar el escalado automático para optimizar costos.
-- **Alertas y Monitoreo**: Implementar alertas en caso de errores en la API o si el tiempo de respuesta excede ciertos límites.
-- **Automatización Completa de IaC**: Utilizar Terraform para todas las partes de la infraestructura, incluyendo permisos y configuraciones adicionales.
-- **Mejoras en Seguridad**: Implementar controles de acceso más estrictos y encriptación de datos en reposo para aumentar la seguridad del sistema.
-- **Mejorar el Procesamiento de Datos**: Optimizar la función de ingesta para manejar volúmenes mayores de datos y reducir la latencia de procesamiento.
+#### Pub/Sub para Ingesta de Datos
 
-## Cómo Ejecutar el Proyecto
+-   **Tópico**: `data-ingest-topic`
+-   **Suscripción**: `data-ingest-subscription`
+
+hcl
+
+Copiar código
+
+`# Tópico de Pub/Sub
+resource "google_pubsub_topic" "data_ingest" {
+  name = "data-ingest-topic"
+}
+
+# Suscripción a Pub/Sub
+resource "google_pubsub_subscription" "data_ingest_sub" {
+  name  = "data-ingest-subscription"
+  topic = google_pubsub_topic.data_ingest.name
+}`
+
+#### BigQuery para Almacenamiento
+
+-   **Dataset**: `analytics_dataset`
+-   **Tabla**: `example_table`
+
+hcl
+
+Copiar código
+
+`# Dataset en BigQuery
+resource "google_bigquery_dataset" "analytics_dataset" {
+  dataset_id = "analytics_dataset"
+}
+
+# Tabla en BigQuery
+resource "google_bigquery_table" "example_table" {
+  dataset_id = google_bigquery_dataset.analytics_dataset.dataset_id
+  table_id   = "example_table"
+
+  schema = jsonencode([
+    {
+      name = "id"
+      type = "INTEGER"
+      mode = "REQUIRED"
+    },
+    {
+      name = "name"
+      type = "STRING"
+      mode = "NULLABLE"
+    }
+  ])
+}`
+
+#### Cloud Run para Exponer la API
+
+-   **Servicio**: `data-api`
+
+hcl
+
+Copiar código
+
+`# Servicio de Cloud Run
+resource "google_cloud_run_service" "api_service" {
+  name     = "data-api"
+  location = var.region
+
+  template {
+    spec {
+      service_account_name = google_service_account.data_api_sa.email
+      containers {
+        image = "us-east4-docker.pkg.dev/${var.project_id}/latam-devsecops-images/data-api:v1"
+        env {
+          name  = "PROJECT_ID"
+          value = var.project_id
+        }
+      }
+    }
+  }
+
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
+}`
+
+#### Cloud Function para Procesar Datos
+
+-   **Función**: `pubsub-to-bigquery`
+
+hcl
+
+Copiar código
+
+`# Cloud Function para procesar datos
+resource "google_cloudfunctions_function" "pubsub_to_bigquery" {
+  name                  = "pubsub-to-bigquery"
+  description           = "Ingesta datos desde Pub/Sub a BigQuery"
+  runtime               = "python39"
+  available_memory_mb   = 256
+  source_archive_bucket = google_storage_bucket.function_bucket.name
+  source_archive_object = google_storage_bucket_object.function_source.name
+  entry_point           = "ingest_data"
+  service_account_email = google_service_account.function_sa.email
+
+  event_trigger {
+    event_type = "google.pubsub.topic.publish"
+    resource   = google_pubsub_topic.data_ingest.id
+  }
+
+  environment_variables = {
+    PROJECT_ID = var.project_id
+    DATASET    = google_bigquery_dataset.analytics_dataset.dataset_id
+    TABLE_NAME = google_bigquery_table.example_table.table_id
+  }
+}`
+
+#### Cuentas de Servicio e IAM
+
+Se crearon cuentas de servicio específicas para la API y la Cloud Function, asignándoles los roles necesarios para interactuar con los servicios de Google Cloud.
+
+Parte 2: Aplicaciones y Flujo CI/CD
+-----------------------------------
+
+### API HTTP
+
+#### Descripción
+
+Se desarrolló una API utilizando **Flask** para exponer los datos almacenados en BigQuery. La API tiene un endpoint `/data` que, al recibir una petición GET, consulta los datos en BigQuery y los devuelve en formato JSON.
+
+#### Código de la Aplicación (`app.py`)
+
+python
+
+Copiar código
+
+`from flask import Flask, jsonify
+from google.cloud import bigquery
+import logging
+import os
+
+# Inicializar la aplicación Flask
+app = Flask(__name__)
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Obtener el PROJECT_ID desde las variables de entorno
+PROJECT_ID = os.getenv("PROJECT_ID")
+
+@app.route('/data', methods=['GET'])
+def get_data():
+    try:
+        client = bigquery.Client()
+
+        query = f"""
+        SELECT * FROM `{PROJECT_ID}.analytics_dataset.example_table` LIMIT 10
+        """
+        logger.info(f"Ejecutando la consulta: {query}")
+        query_job = client.query(query)
+
+        results = [dict(row) for row in query_job.result()]
+        logger.info(f"Resultados obtenidos: {results}")
+        return jsonify(results), 200
+    except Exception as e:
+        logger.error(f"Error al consultar BigQuery: {e}", exc_info=True)
+        return jsonify({"error": "Error al obtener datos"}), 500
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)`
+
+#### Dockerfile
+
+Se creó un `Dockerfile` optimizado para reducir vulnerabilidades y asegurar una imagen ligera y segura.
+
+dockerfile
+
+Copiar código
+
+`# Usar una imagen base mínima de Python en Alpine Linux
+FROM python:alpine3.19
+
+# Establecer el directorio de trabajo
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apk update && apk add --no-cache gcc g++ musl-dev libffi-dev
+
+# Copiar y instalar dependencias de la aplicación
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el código fuente
+COPY . .
+
+# Exponer el puerto 8080
+EXPOSE 8080
+
+# Comando para ejecutar la aplicación
+CMD ["python", "app.py"]`
+
+### Despliegue en la Nube mediante CI/CD
+
+Se implementó un flujo CI/CD utilizando **GitHub Actions** para automatizar el proceso de construcción, pruebas y despliegue de la API.
+
+#### Archivo de Workflow (`.github/workflows/ci-cd.yaml`)
+
+yaml
+
+Copiar código
+
+`name: CI/CD Pipeline para Cloud Run Deployment Data
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Construir Imagen Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Revisar repositorio
+        uses: actions/checkout@v2
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Iniciar sesión en Google Artifact Registry
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          echo "$GCP_SA_KEY" | docker login -u _json_key --password-stdin https://us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}
+      - name: Construir y publicar imagen Docker
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker buildx build --platform linux/amd64 -t us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG -f Dockerfile --push .
+  deploy:
+    name: Desplegar en Cloud Run
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Autenticarse con Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configurar Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Desplegar en Cloud Run
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          gcloud run deploy data-api\
+            --image us-east4-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/latam-devsecops-images/data-api:$IMAGE_TAG\
+            --region us-east4\
+            --platform managed\
+            --allow-unauthenticated\
+            --set-env-vars PROJECT_ID=${{ secrets.GCP_PROJECT_ID }} `
+
+### Ingesta de Datos (Opcional)
+
+Se implementó una **Cloud Function** que suscribe al tópico de Pub/Sub y procesa los mensajes para insertarlos en BigQuery.
+
+#### Código de la Cloud Function (`main.py`)
+
+python
+
+Copiar código
+
+`from google.cloud import bigquery
+import base64
+import json
+import os
+
+def ingest_data(event, context):
+    client = bigquery.Client()
+    dataset_id = os.environ.get('DATASET')
+    table_id = os.environ.get('TABLE_NAME')
+    project_id = os.environ.get('PROJECT_ID')
+
+    # Decodificar el mensaje de Pub/Sub
+    pubsub_message = base64.b64decode(event['data']).decode('utf-8')
+    data = json.loads(pubsub_message)
+
+    table_ref = client.dataset(dataset_id).table(table_id)
+    table = client.get_table(table_ref)
+
+    # Insertar fila en BigQuery
+    errors = client.insert_rows_json(table, [data])
+    if errors:
+        print(f"Errores al insertar filas: {errors}")
+    else:
+        print("Datos insertados correctamente en BigQuery")`
+
+### Diagrama de Arquitectura
+
+El diagrama presentado anteriormente ilustra cómo interactúan los diferentes componentes, desde la ingesta de datos hasta su exposición a través de la API.
+
+Parte 3: Pruebas de Integración y Puntos Críticos de Calidad
+------------------------------------------------------------
+
+### Pruebas de Integración Implementadas
+
+Se implementaron pruebas de integración en el flujo CI/CD para verificar que la API está exponiendo correctamente los datos de la base de datos.
+
+#### Descripción
+
+-   **Prueba de Integración**: Se realiza una solicitud GET al endpoint `/data` y se verifica que la respuesta HTTP sea 200.
+-   **Prueba Funcional de Integridad de Datos**: Se valida que los datos esperados estén presentes en la respuesta.
+
+#### Argumentación
+
+Estas pruebas aseguran que:
+
+-   La API está operativa y accesible.
+-   La conexión con BigQuery es exitosa.
+-   Los datos se están obteniendo y devolviendo correctamente.
+
+### Otras Pruebas de Integración Propuestas
+
+1.  **Pruebas de Respuesta a Datos Inesperados**:
+
+    -   Enviar mensajes malformados a Pub/Sub y verificar que la Cloud Function maneja correctamente los errores sin detenerse.
+2.  **Pruebas de Carga**:
+
+    -   Simular múltiples solicitudes concurrentes al endpoint `/data` para evaluar el rendimiento y escalabilidad de la API.
+3.  **Pruebas de Seguridad**:
+
+    -   Implementar autenticación en la API y verificar que solo usuarios autorizados puedan acceder a los datos.
+
+### Puntos Críticos del Sistema
+
+1.  **Fallas en la Cloud Function**:
+
+    -   Si la función falla al procesar mensajes, los datos no se ingresarán a BigQuery.
+2.  **Latencia en Consultas a BigQuery**:
+
+    -   Consultas lentas pueden afectar el tiempo de respuesta de la API.
+3.  **Escalabilidad de Cloud Run**:
+
+    -   Bajo alta demanda, es posible que la API necesite escalar para mantener el rendimiento.
+
+### Cómo Robustecer el Sistema
+
+1.  **Reintentos Automáticos**:
+
+    -   Configurar reintentos en la Cloud Function para manejar errores transitorios.
+2.  **Optimización de Consultas**:
+
+    -   Implementar caché o paginación en las consultas a BigQuery.
+3.  **Configuración de Autoescalado**:
+
+    -   Ajustar las configuraciones de escalado automático en Cloud Run para manejar aumentos en la carga.
+
+Parte 4: Métricas y Monitoreo
+-----------------------------
+
+### Métricas Propuestas
+
+1.  **Tasa de Errores de la Cloud Function**:
+
+    -   Monitorear la cantidad de ejecuciones fallidas.
+2.  **Tiempo de Respuesta de la API**:
+
+    -   Medir el tiempo promedio de respuesta para garantizar un rendimiento óptimo.
+3.  **Número de Mensajes Pendientes en Pub/Sub**:
+
+    -   Vigilar si hay acumulación de mensajes, lo que indicaría problemas en la ingesta.
+
+### Herramienta de Visualización
+
+Se propone utilizar **Google Cloud Monitoring** para recolectar y visualizar las métricas. Se pueden configurar paneles personalizados que muestren las métricas críticas.
+
+#### Uso de las Métricas para Entender la Salud del Sistema
+
+-   **Detección Temprana de Problemas**: Alertas basadas en umbrales permiten identificar y solucionar problemas rápidamente.
+-   **Optimización Continua**: El seguimiento de métricas de rendimiento facilita la toma de decisiones para optimizar el sistema.
+
+### Implementación en la Nube
+
+-   **Configuración de Monitoring**: Habilitar la exportación de métricas desde los servicios utilizados.
+-   **Creación de Dashboards**: Configurar paneles en Google Cloud Monitoring para visualizar las métricas.
+
+### Escalamiento a 50 Sistemas Similares
+
+-   **Agregación de Métricas**: Se requerirá agregar y filtrar métricas por sistema.
+-   **Nuevas Métricas**: Podrían incluirse métricas de latencia promedio entre sistemas y tasas de error globales.
+
+### Dificultades de Observabilidad
+
+-   **Complejidad en el Monitoreo**: Mayor número de sistemas puede dificultar la identificación de problemas específicos.
+-   **Sobrecarga de Alertas**: Es posible que se generen demasiadas alertas, lo que podría saturar al equipo de operaciones.
+
+Parte 5: Alertas y SRE (Opcional)
+---------------------------------
+
+### Reglas de Alertas y Umbrales
+
+1.  **Tasa de Errores de la Cloud Function**:
+
+    -   Alertar si la tasa de errores supera el 5% en un período de 5 minutos.
+    -   **Argumentación**: Una alta tasa de errores indica problemas en la ingesta de datos.
+2.  **Tiempo de Respuesta de la API**:
+
+    -   Alertar si el tiempo de respuesta promedio excede los 500 ms durante 5 minutos.
+    -   **Argumentación**: Un aumento en la latencia afecta la experiencia del usuario.
+3.  **Mensajes Pendientes en Pub/Sub**:
+
+    -   Alertar si hay más de 100 mensajes pendientes por más de 10 minutos.
+    -   **Argumentación**: Indica que la Cloud Function no está procesando los mensajes a tiempo.
+
+### SLIs y SLOs
+
+-   **SLI de Disponibilidad de la API**:
+
+    -   **SLO**: 99.9% de disponibilidad mensual.
+    -   **Justificación**: Asegura que la API esté disponible para los usuarios la mayor parte del tiempo.
+-   **SLI de Latencia de la API**:
+
+    -   **SLO**: 95% de las solicitudes con tiempo de respuesta menor a 300 ms.
+    -   **Justificación**: Garantiza una experiencia de usuario satisfactoria.
+-   **SLI de Procesamiento de la Cloud Function**:
+
+    -   **SLO**: Procesar el 99% de los mensajes en menos de 1 minuto desde su recepción.
+    -   **Justificación**: Asegura que los datos estén disponibles casi en tiempo real.
+
+Mejoras Futuras
+---------------
+
+-   **Implementar Autenticación**: Proteger la API para que solo usuarios autorizados puedan acceder a los datos.
+
+-   **Optimizar la Ingesta de Datos**: Mejorar la Cloud Function para manejar mayores volúmenes de datos y reducir la latencia.
+
+-   **Ampliar Pruebas Automatizadas**: Incluir pruebas unitarias y de integración más exhaustivas.
+
+-   **Optimización de Costos**: Ajustar los recursos y configuraciones para reducir costos sin afectar el rendimiento.
+
+Cómo Ejecutar el Proyecto
+-------------------------
 
 ### Prerrequisitos
 
-- Tener acceso a un proyecto de Google Cloud Platform con las APIs correspondientes habilitadas.
-- Credenciales en formato JSON de una cuenta de servicio con permisos necesarios para Cloud Run, BigQuery y Pub/Sub.
+-   Cuenta de Google Cloud Platform con las APIs necesarias habilitadas:
+    -   Cloud Run
+    -   Cloud Functions
+    -   Pub/Sub
+    -   BigQuery
+-   **Google Cloud SDK** instalado y configurado.
+-   **Terraform** instalado.
+-   **Docker** instalado para pruebas locales.
 
 ### Instrucciones
 
-1. **Clonar el Repositorio**:
-   ```bash
-   git clone https://github.com/alvarowops/latam-challenge-devsecops.git
-   ```
-2. **Configurar Variables de Entorno**:
-   Crear un archivo `.env` en el directorio principal con la siguiente configuración:
-   ```env
-   PROJECT_ID=your-google-cloud-project-id
-   ```
-3. **Desplegar la Aplicación**:
-   Utilizar los flujos de CI/CD provistos o desplegar manualmente la infraestructura y la aplicación usando Terraform y Google Cloud.
+1.  **Clonar el Repositorio**
 
-## Recursos
+bash
 
-- **API Endpoint**: `/data` - Expone los datos procesados y almacenados en BigQuery.
-- **Google Cloud Run**: Desplegado serverless para garantizar escalabilidad.
+Copiar código
 
-## Información del Desafío
+`git clone https://github.com/tu-usuario/latam-challenge-devsecops.git`
 
-Se han seguido las instrucciones proporcionadas, incluyendo el desarrollo de una infraestructura automatizada y pruebas para garantizar la calidad del servicio.
+1.  **Configurar Variables de Entorno**
 
-## Parte 2: Aplicaciones y Flujo CI/CD
+Crear un archivo `terraform.tfvars` en el directorio `terraform` con el siguiente contenido:
 
-1. **API HTTP**: Levantar un endpoint HTTP con lógica que lea datos de base de datos y los exponga al recibir una petición GET.
-2. **Deployar API HTTP en la Nube mediante CI/CD**: El flujo CI/CD y ejecuciones deben estar visibles en el repositorio git.
-3. **Ingesta (Opcional)**: Agregar suscripción al sistema Pub/Sub con lógica para ingresar los datos recibidos a la base de datos. El objetivo es que los mensajes recibidos en un tópico se guarden en la base de datos.
-4. **Diagrama de Arquitectura**: Incluye un diagrama de arquitectura que muestra la interacción con los servicios/aplicaciones desde la ingesta hasta el consumo por la API HTTP.
+hcl
 
-Comentarios:
-- Se recomienda usar un servicio serverless mediante Dockerfile para optimizar el tiempo de desarrollo y deployment para la API HTTP.
-- La lógica de ingesta puede ser incluida nativamente por el servicio en la nube.
-- Para el punto 4, no se requiere un diagrama profesional ni que siga ningún estándar específico.
+Copiar código
 
-## Parte 3: Pruebas de Integración y Puntos Críticos de Calidad
+`project_id = "tu-id-de-proyecto"
+region     = "us-central1"`
 
-1. **Pruebas de Integración en CI/CD**: Se implementa una prueba de integración en el flujo CI/CD para verificar que la API está exponiendo correctamente los datos almacenados en la base de datos. Esta prueba asegura que el endpoint `/data` devuelve una respuesta HTTP 200 y que los datos esperados están presentes en la respuesta.
+1.  **Desplegar la Infraestructura con Terraform**
 
-2. **Propuestas de Otras Pruebas de Integración**:
-   - **Pruebas de Respuesta a Datos Inesperados**: Validar cómo el sistema responde a mensajes malformados en Pub/Sub, asegurando que no se ingresa información incorrecta a BigQuery.
-   - **Pruebas de Disponibilidad**: Simular múltiples solicitudes simultáneas al endpoint para verificar que el sistema sigue siendo responsivo bajo carga.
-   - **Pruebas de Seguridad**: Validar que el acceso al endpoint `/data` está limitado a usuarios autenticados, si se implementa autenticación.
+bash
 
-3. **Puntos Críticos del Sistema**:
-   - **Fallas de la Cloud Function**: Si la Cloud Function falla al procesar los mensajes de Pub/Sub, los datos no se ingresarán a BigQuery. Se podría implementar un sistema de reintentos o alertas cuando las funciones fallen.
-   - **Latencia en BigQuery**: Consultar BigQuery puede ser lento bajo grandes volúmenes de datos. Para mitigar esto, se podría implementar un caché de los resultados más recientes.
-   - **Escalabilidad de Cloud Run**: Cloud Run puede enfrentar problemas de escalabilidad si el número de solicitudes aumenta significativamente. Se recomienda ajustar las configuraciones de autoescalado y utilizar un balanceador de carga si es necesario.
+Copiar código
 
-4. **Robustecer el Sistema**:
-   - **Reintentos Automáticos**: Implementar políticas de reintento en caso de fallas en la Cloud Function para asegurar la ingesta de datos.
-   - **Balanceo de Carga**: Utilizar balanceadores de carga para manejar un gran número de solicitudes simultáneas y distribuirlas eficientemente.
-   - **Caché de Consultas**: Implementar un caché para los resultados de consultas comunes en BigQuery, disminuyendo la carga y mejorando el tiempo de respuesta.
+`cd terraform
+terraform init
+terraform apply`
 
-## Parte 4: Métricas y Monitoreo
+1.  **Construir y Publicar la Imagen Docker**
 
-1. **Métricas Críticas**:
-   - **Tasa de Errores de la Cloud Function**: Monitorear la cantidad de errores en la ejecución de la Cloud Function para identificar problemas en la ingesta de datos.
-   - **Tiempo de Respuesta del Endpoint**: Medir el tiempo promedio de respuesta del endpoint `/data` para asegurar que el sistema está respondiendo rápidamente a las solicitudes de los usuarios.
-   - **Tasa de Mensajes Pendientes en Pub/Sub**: Verificar la cantidad de mensajes pendientes en el tópico de Pub/Sub para asegurarse de que la ingesta de datos se realiza de manera oportuna.
+Si no se utiliza el flujo CI/CD:
 
-2. **Herramienta de Visualización**:
-   - Se propone utilizar **Google Cloud Monitoring** junto con **Grafana** para la visualización de métricas. Google Cloud Monitoring recolectará las métricas de todos los servicios, y Grafana permitirá crear paneles personalizados que muestren las métricas críticas, tales como la tasa de errores de la Cloud Function, el tiempo de respuesta del endpoint y los mensajes pendientes en Pub/Sub. Esta información nos ayudará a entender la salud del sistema y a tomar decisiones estratégicas para optimizar el rendimiento.
+bash
 
-3. **Implementación en la Nube**:
-   - **Google Cloud Monitoring** se integrará con cada servicio en la nube para recolectar métricas. Para implementar esto, se crearán alertas y paneles de monitoreo en la consola de Google Cloud. Luego, se integrará **Grafana** para visualizar estas métricas de forma centralizada y más intuitiva.
+Copiar código
 
-4. **Escalamiento a 50 Sistemas Similares**:
-   - Al escalar la solución a 50 sistemas similares, la visualización cambiará para incluir métricas agregadas, tales como el promedio de tiempos de respuesta entre los sistemas, la tasa total de errores y la distribución de carga entre los sistemas. Además, se agregarán métricas adicionales como **Tasa de Éxito de Despliegue** para cada uno de los sistemas y la **Utilización de Recursos Compartidos**.
+`docker build -t gcr.io/tu-id-de-proyecto/data-api:latest -f Dockerfile .
+docker push gcr.io/tu-id-de-proyecto/data-api:latest`
 
-5. **Dificultades de Escalabilidad**:
-   - Las principales dificultades serían mantener una observabilidad efectiva y garantizar que los paneles no se saturen con información innecesaria. Se podría enfrentar problemas de rendimiento en la visualización de métricas agregadas si no se optimizan los paneles de monitoreo. Es importante utilizar filtros adecuados para concentrarse en los sistemas que necesitan atención inmediata.
+1.  **Desplegar en Cloud Run**
 
-## Parte 5: Alertas y SRE (Opcional)
+Si no se utiliza el flujo CI/CD:
 
-1. **Reglas de Alertas**:
-   - **Tasa de Errores de la Cloud Function**: Se configurará una alerta si la tasa de errores excede el 5% de las ejecuciones totales en un período de 5 minutos. Esto es crítico para garantizar que los datos se ingesten correctamente.
-   - **Tiempo de Respuesta del Endpoint**: Si el tiempo de respuesta del endpoint `/data` supera los 500 ms durante más de 1 minuto, se disparará una alerta para investigar problemas de rendimiento.
-   - **Mensajes Pendientes en Pub/Sub**: Se disparará una alerta si el número de mensajes pendientes en el tópico de Pub/Sub excede un umbral de 100 mensajes durante más de 10 minutos, lo cual indicaría un posible cuello de botella en la ingesta de datos.
+bash
 
-2. **SLIs y SLOs**:
-   - **SLO de Disponibilidad del Endpoint**: Definir un **SLO** del 99.9% de disponibilidad mensual para el endpoint `/data`. Este SLO asegura que el servicio está disponible casi siempre para los usuarios finales.
-   - **SLO de Tiempo de Respuesta**: Definir un **SLO** de tiempo de respuesta menor a 500 ms para el 95% de las solicitudes. Este SLO se basa en la experiencia del usuario y asegura que la mayoría de las solicitudes sean rápidas.
-   - **SLO de Tasa de Errores de Cloud Function**: Definir un **SLO** que mantenga la tasa de errores por debajo del 1% para la ingesta de datos. Esto asegura que la ingesta de datos sea confiable y que los errores sean mínimos.
+Copiar código
 
-   Se descartaron otras métricas como **Uso de CPU** o **Memoria** para definir SLIs, ya que son más útiles para la optimización interna que para definir los niveles de servicio hacia el usuario final.
+`gcloud run deploy data-api\
+  --image gcr.io/tu-id-de-proyecto/data-api:latest\
+  --platform managed\
+  --region us-central1\
+  --allow-unauthenticated\
+  --set-env-vars PROJECT_ID=tu-id-de-proyecto`
 
+1.  **Probar el Endpoint de la API**
+
+Obtener la URL del servicio desplegado:
+
+bash
+
+Copiar código
+
+`gcloud run services describe data-api --region us-central1 --format 'value(status.url)'`
+
+Realizar una solicitud GET al endpoint `/data`:
+
+bash
+
+Copiar código
+
+`curl https://tu-url-de-cloud-run/data`
+
+Recursos
+--------
+
+-   **API Endpoint**: `/data` - Exposición de datos almacenados en BigQuery.
+-   **Repositorio de Código**: [GitHub](https://github.com/tu-usuario/latam-challenge-devsecops)
+-   **Docker Image**: Almacenada en Google Artifact Registry.
+
+* * * * *
+
+**Nota**: Reemplaza `tu-usuario` y `tu-id-de-proyecto` con tu nombre de usuario de GitHub y el ID de tu proyecto de Google Cloud, respectivamente.
