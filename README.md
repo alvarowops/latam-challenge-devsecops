@@ -145,6 +145,28 @@ resource "google_cloudfunctions_function" "pubsub_to_bigquery" {
 ### Cuentas de Servicio e IAM
 Se crearon cuentas de servicio específicas para la API y la Cloud Function, asignándoles los roles necesarios para interactuar con los servicios de Google Cloud.
 
+### Escaneo de Seguridad con Trivy
+
+Durante el desarrollo del desafío, se realizó un análisis de seguridad utilizando Trivy para asegurar que la imagen Docker estuviera libre de vulnerabilidades críticas. A continuación se muestra el resultado del escaneo:
+
+```
+~/latam-challenge-devsecops  on main ------------------------------------------------------------------------ at 12:12:59 AM
+> trivy image us-east4-docker.pkg.dev/latam-devsecops/latam-devsecops-images/data-api:v6
+2024-10-13T00:13:02-03:00       INFO    [vuln] Vulnerability scanning is enabled
+2024-10-13T00:13:02-03:00       INFO    [secret] Secret scanning is enabled
+2024-10-13T00:13:02-03:00       INFO    [secret] If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2024-10-13T00:13:02-03:00       INFO    [secret] Please see also https://aquasecurity.github.io/trivy/v0.56/docs/scanner/secret#recommendation for faster secret detection
+2024-10-13T00:13:02-03:00       INFO    Detected OS     family="alpine" version="3.19.4"
+2024-10-13T00:13:02-03:00       INFO    [alpine] Detecting vulnerabilities...   os_version="3.19" repository="3.19" pkg_num=48
+2024-10-13T00:13:02-03:00       INFO    Number of language-specific files       num=1
+2024-10-13T00:13:02-03:00       INFO    [python-pkg] Detecting vulnerabilities...
+
+us-east4-docker.pkg.dev/latam-devsecops/latam-devsecops-images/data-api:v6 (alpine 3.19.4)
+
+Total: 0 (UNKNOWN: 0, LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0)
+```
+
+Este resultado muestra que no se encontraron vulnerabilidades en la imagen, lo cual asegura que el sistema cumple con los estándares de seguridad esperados.
 ## Parte 2: Aplicaciones y Flujo CI/CD
 ### API HTTP
 #### Descripción
