@@ -25,6 +25,7 @@ La solución diseñada consta de los siguientes componentes:
 
 ### Diagrama de Arquitectura
 *Nota: El diagrama muestra el flujo de datos desde la ingesta hasta la exposición, destacando los diferentes servicios de Google Cloud utilizados, tales como Pub/Sub, Cloud Function, BigQuery y Cloud Run.*
+![Diagrama de Arquitectura](image.png)
 
 ## Descripción de la Infraestructura
 La infraestructura necesaria para ingestar, almacenar y exponer datos se implementó utilizando Terraform, siguiendo el principio de Infraestructura como Código (IaC). A continuación, se describen los componentes principales:
